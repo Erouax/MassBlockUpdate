@@ -27,15 +27,18 @@ public class BorderBlockUpdate extends BasicMassBlockUpdate {
 	/**
 	 * Create a circular border at the specified location
 	 * with the specified radius and height.
+	 * 
+	 * Usage Example: 
+	 *    BorderBlockUpdate update = new BorderBlockUpdate();
+	 *    update.createCircularBorder(new Location(Bukkit.getWorld("world"), 0, 0, 0), 50, 5);
+	 *    update.run();
 	 *
 	 * @param center - Center location of the border
 	 * @param radius - Radius of the border
 	 * @param height - Height of the border
 	 */
 	public void createCircularBorder(Location center, int radius, int height) {
-		int points = radius + 1;
-
-		for (double d = 0; d < Math.PI; d += Math.PI / points) {
+		for (double d = -Math.PI; d < Math.PI; d++) {
 			double x = Math.cos(d) * radius;
 			double z = Math.sin(d) * radius;
 
