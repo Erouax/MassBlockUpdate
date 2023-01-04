@@ -27,6 +27,7 @@ public class BorderBlockUpdate extends BasicMassBlockUpdate {
 	/**
 	 * Create a circular border at the specified location
 	 * with the specified radius and height.
+	 * Algorithm thanks to http://members.chello.at/~easyfilter/bresenham.html
 	 * 
 	 * Usage Example: 
 	 *    BorderBlockUpdate update = new BorderBlockUpdate();
@@ -38,20 +39,22 @@ public class BorderBlockUpdate extends BasicMassBlockUpdate {
 	 * @param height - Height of the border
 	 */
 	public void createCircularBorder(Location center, int radius, int height) {
-		for (double d = -Math.PI; d < Math.PI; d++) {
-			double x = Math.cos(d) * radius;
-			double z = Math.sin(d) * radius;
-
-			Location location = new Location(this.world, x, 0, z);
-
-			Block highest = this.world.getHighestBlockAt(location);
-
-			this.addChunk(highest.getChunk());
-
-			for (int y = highest.getY(); y < highest.getY() + height && y < 256; y++) {
-				this.addBlock(x + center.getBlockX(), y, z + center.getBlockZ());
+		int x = -radius;
+		int z = 0;
+		int err = 2-2*radius;
+		do {
+			addPillar(center.getBlockX() - x, center.getBlockZ() + z, height);
+			addPillar(center.getBlockX() - z, center.getBlockZ() - x, height);
+			addPillar(center.getBlockX() + x, center.getBlockZ() - z, height);
+			addPillar(center.getBlockX() + z, center.getBlockZ() + x, height);
+			radius = err;
+			if (radius <= z) {
+				err += ++z*2+1;
 			}
-		}
+			if (radius > x || err > z) {
+				err += ++x*2+1;
+			}
+		} while (x < 0);
 	}
 
 	/**
@@ -68,16 +71,25 @@ public class BorderBlockUpdate extends BasicMassBlockUpdate {
 				if (Math.abs(x) != radius && Math.abs(z) != radius) {
 					continue;
 				}
-
-				Block highest = this.world.getHighestBlockAt(x, z);
-
-				this.addChunk(highest.getChunk());
-
-				for (int y = highest.getY(); y < highest.getY() + height && y < 256; y++) {
-					this.addBlock(x + center.getBlockX(), y, z + center.getBlockZ());
-				}
+				addPillar(x + center.getBlockX(), z + center.getBlockZ(), height);
 			}
 		}
 	}
 
+	/**
+	 * Add the blocks and chunks for a given x, z
+	 * coordinates up to the specified height starting
+	 * from the block returned by World#getHighestBlockAt()
+	 *
+	 * @param x      - X Coordinate of the pillar
+	 * @param z      - Z Coordinate of the pillar
+	 * @param height - Height of the pillar
+	 */
+	public void addPillar(int x, int z, int height) {
+		Block highest = this.world.getHighestBlockAt(x, z);
+		this.addChunk(highest.getChunk());
+		for (int y = highest.getY(); y < highest.getY() + height && y < 256; y++) {
+			this.addBlock(x, y, z);
+		}
+	}
 }

@@ -123,10 +123,7 @@ public class BasicMassBlockUpdate implements MassBlockUpdate {
 
 			for (int i = 0; i < this.rateLimit; i++) {
 				if (this.positions.isEmpty()) {
-					this.onFinish();
-
-					this.cancel();
-					return;
+					break;
 				}
 
 				BlockPosition position = this.positions.remove();
@@ -138,6 +135,11 @@ public class BasicMassBlockUpdate implements MassBlockUpdate {
 			if (this.debug) {
 				this.loadTimes.add(end - start);
 				this.ticks++;
+			}
+
+			if (this.positions.isEmpty()) {
+				this.onFinish();
+				this.cancel();
 			}
 		}
 
